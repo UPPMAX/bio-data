@@ -1,0 +1,34 @@
+#!/bin/bash -l
+#SBATCH -A staff
+#SBATCH -p core
+#SBATCH -n 8
+#SBATCH -t 2:00:00
+#SBATCH -J iGenomes_STAR
+
+module load bioinfo-tools
+module load star/2.5.1b
+
+IGEN=/sw/data/uppnex/igenomes/raw
+VICT=$IGEN/$1
+DEST=$VICT/Sequence/STARIndex
+echo $VICT
+mkdir $DEST || exit 1
+cd $DEST
+
+ln -s $VICT/Sequence/WholeGenomeFasta/genome.fa $SNIC_TMP/
+ln -s ../WholeGenomeFasta/genome.fa .
+
+GTF=''
+if [ -e $VICT/Annotation/Genes/genes.gtf ]
+then
+    ln -s $VICT/Annotation/Genes/genes.gtf $SNIC_TMP/
+    ln -s ../../Annotation/Genes/genes.gtf .
+    GTF='--sjdbGTFfile genes.gtf --sjdbOverhang 100'
+fi
+
+cd $SNIC_TMP
+echo "STAR --runMode genomeGenerate --runThreadN 8 --genomeDir ./ --genomeFastaFiles genome.fa $GTF"
+STAR --runMode genomeGenerate --runThreadN 8 --genomeDir ./ --genomeFastaFiles genome.fa $GTF
+
+rm genome.fa genes.gtf
+cp -rp * $DEST/

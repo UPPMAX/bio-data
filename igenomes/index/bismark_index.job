@@ -1,0 +1,32 @@
+#!/bin/bash -l
+#SBATCH -A staff
+#SBATCH -p core
+#SBATCH -n 4
+#SBATCH -t 9:00:00
+#SBATCH -J iGenomes_Bismark
+
+module load bioinfo-tools
+module load bowtie/1.1.2
+module load bowtie2/2.2.6
+module load bismark/0.14.5
+
+IGEN=/sw/data/uppnex/igenomes/raw
+VICT=$IGEN/$1
+DEST=$VICT/Sequence/BismarkIndex
+echo $VICT
+mkdir $DEST || exit 1
+cd $DEST
+
+ln -s $VICT/Sequence/WholeGenomeFasta/genome.fa $SNIC_TMP/
+ln -s ../WholeGenomeFasta/genome.fa .
+
+cd $SNIC_TMP
+echo "bismark_genome_preparation ./"
+bismark_genome_preparation ./
+
+echo "bismark_genome_preparation --bowtie2 ./"
+bismark_genome_preparation --bowtie2 ./
+
+#rm -f genome.fa
+#cp -rp * $DEST/
+cp -rp Bisulfite_Genome $DEST/
